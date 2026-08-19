@@ -1,0 +1,37 @@
+name: SkillSphere CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Security audit
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+
+      - name: Build Docker images
+        run: docker compose build
